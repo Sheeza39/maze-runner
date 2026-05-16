@@ -1,59 +1,110 @@
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.SceneManagement; 
+using TMPro;
 
 public class PlayerMovement : MonoBehaviour
 {
+    [Header("Movement Settings")]
     public NavMeshAgent agent;
-    public float speed = 5f;
+    public float speed = 6f;
 
-    // FIX: Added the missing score variable definition here!
-    private int score = 0; 
+    [Header("UI Text Fields")]
+    public TMP_Text scoreText; 
+    public TMP_Text coinText;  
+
+    [Header("Mobile Pause Menu Elements")]
+    public GameObject pausePanel; 
+
+    [Header("Scoring Tracker System")]
+    private int score = 0;
+    private int coinsCollected = 0;
+    private const int totalCoinsNeeded = 40;
 
     void Start()
     {
-        if (agent == null) agent = GetComponent<NavMeshAgent>();
-        
-        agent.updateRotation = true; 
-        agent.speed = speed;
+        if (agent == null)
+        {
+            agent = GetComponent<NavMeshAgent>();
+        }
+
+        if (agent != null)
+        {
+            agent.speed = speed;
+        }
+
+        Time.timeScale = 1f;
+        UpdateGameUI();
     }
 
     void Update()
     {
-        float x = Input.GetAxis("Horizontal");
-       float z = Input.GetAxis("Vertical");
+        if (Time.timeScale == 0f) return;
 
-        Vector3 moveDirection = new Vector3(x, 0, z).normalized;
+        float moveHorizontal = Input.GetAxis("Horizontal");
+        float moveVertical = Input.GetAxis("Vertical");
 
-        if (moveDirection.magnitude > 0.1f)
+        Vector3 movementDirection = new Vector3(moveHorizontal, 0f, moveVertical).normalized;
+
+        if (movementDirection.magnitude >= 0.1f)
         {
-            Vector3 targetPosition = transform.position + moveDirection * 0.2f; 
-            agent.SetDestination(targetPosition);
+            Vector3 targetPosition = transform.position + movementDirection;
+            
+            if (agent != null)
+            {
+                agent.SetDestination(targetPosition);
+            }
         }
     }
 
-    // 1. VICTORY CONDITION: Trigger sensor for coins
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.CompareTag("Coin"))
         {
+            Destroy(other.gameObject);
             score += 10;
-            Debug.Log("⭐ SUCCESS: Coin collected! +10 Points. Total Score: " + score + " ⭐");
-            
-            Destroy(other.gameObject); 
+            coinsCollected++;
+            UpdateGameUI();
 
-            if (score >= 400)
+            if (coinsCollected >= totalCoinsNeeded)
             {
-                Debug.Log("🎉 VICTORY! You successfully collected 40 coins! You win the maze! 🎉");
-                Time.timeScale = 0f; // Freezes the game
+                TriggerVictory();
             }
         }
-        
-        // 2. DEFEAT CONDITION: If the enemy enters the Ghost's trigger space
-        if (other.gameObject.name == "Mouse Character" || other.gameObject.CompareTag("Enemy"))
+    }
+
+    void UpdateGameUI()
+    {
+        if (scoreText != null) scoreText.text = "Score: " + score;
+        if (coinText != null) coinText.text = "Coins: " + coinsCollected + " / " + totalCoinsNeeded;
+    }
+
+    public void PauseGame()
+    {
+        if (pausePanel != null)
         {
-            Debug.Log("💀 GAME OVER: The enemy caught you! Player Died. 💀");
-            Destroy(gameObject); // Destroys the Ghost
-            Time.timeScale = 0f; // Freezes the game
+            pausePanel.SetActive(true); 
+            Time.timeScale = 0f;        
         }
+    }
+
+    public void ResumeGame()
+    {
+        if (pausePanel != null)
+        {
+            pausePanel.SetActive(false); 
+            Time.timeScale = 1f;         
+        }
+    }
+
+    public void LoadMainMenu()
+    {
+        Time.timeScale = 1f; 
+        SceneManager.LoadScene("MainMenu"); 
+    }
+
+    void TriggerVictory()
+    {
+        Debug.Log("🏆 VICTORY! All 40 coins collected! 🏆");
     }
 }
