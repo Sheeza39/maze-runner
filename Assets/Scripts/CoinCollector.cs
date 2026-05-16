@@ -2,23 +2,25 @@ using UnityEngine;
 
 public class CoinCollector : MonoBehaviour
 {
-    // A static variable keeps track of the score across the entire game
-    public static int score = 0; 
-
-    // This handles the coin interaction on its own file
     private void OnTriggerEnter(Collider other)
     {
-        // Check if the object the Ghost ran into is tagged as a Coin
-        if (other.gameObject.CompareTag("Coin"))
+        // 1. Verify if the object touching the coin is your Ghost player
+        if (other.gameObject.CompareTag("Player") || other.gameObject.name == "Ghost")
         {
-            // 1. Add 10 points to the total score
-            score += 10;
+            // 2. Fetch the script component directly from the Ghost object
+            PlayerMovement playerScript = other.gameObject.GetComponent<PlayerMovement>();
 
-            // 2. Print the updated score to the console bright and clear
-            Debug.Log("⭐ SUCCESS: Coin collected! +10 Points. Total Score: " + score + " ⭐");
-
-            // 3. Make the coin vanish instantly
-            Destroy(other.gameObject);
+            if (playerScript != null)
+            {
+                // Send score and UI update markers to the master movement script
+                playerScript.OnCoinCollected(); 
+                
+                // 📢 Logs the exact unique clone name to the console!
+                Debug.Log($"⭐ SUCCESS: {gameObject.name} collected! +10 Points. ⭐");
+                
+                // 3. Make this coin instance disappear instantly
+                Destroy(gameObject); 
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement; 
+using System.Collections; 
 using TMPro;
 
 public class PlayerMovement : MonoBehaviour
@@ -9,37 +10,63 @@ public class PlayerMovement : MonoBehaviour
     public NavMeshAgent agent;
     public float speed = 6f;
 
-    [Header("UI Text Fields")]
+    [Header("Main Gameplay UI")]
     public TMP_Text scoreText; 
     public TMP_Text coinText;  
 
     [Header("Mobile Pause Menu Elements")]
     public GameObject pausePanel; 
+    public TMP_Text pauseMenuTitleText; 
+
+    [Header("Victory Screen Elements")]
+    public GameObject victoryPanel;      
+    public TMP_Text finalScoreText;     
+    public TMP_Text finalCoinText;      
 
     [Header("Scoring Tracker System")]
     private int score = 0;
     private int coinsCollected = 0;
-    private const int totalCoinsNeeded = 40;
+    public int totalCoinsNeeded = 3; 
+
+    private bool isPaused = false;
 
     void Start()
     {
-        if (agent == null)
+        string currentScene = SceneManager.GetActiveScene().name;
+
+        if (currentScene == "Level 1")
         {
-            agent = GetComponent<NavMeshAgent>();
+            PlayerPrefs.DeleteAll(); 
+            score = 0;
+            coinsCollected = 0;
+            Debug.Log("🧹 Fresh game started in Level 1! Scores reset to 0.");
+        }
+        else if (currentScene == "Level 2")
+        {
+            score = PlayerPrefs.GetInt("TotalScore", 0);
+            coinsCollected = 0; 
+            Debug.Log("📦 Level 2 Loaded! Carrying over score: " + score);
         }
 
-        if (agent != null)
-        {
-            agent.speed = speed;
-        }
+        if (agent == null) agent = GetComponent<NavMeshAgent>();
+        if (agent != null) agent.speed = speed;
 
-        Time.timeScale = 1f;
+        Time.timeScale = 1f; 
+        isPaused = false;
+        
+        if (pausePanel != null) pausePanel.SetActive(false);
+        if (victoryPanel != null) victoryPanel.SetActive(false); 
+        
         UpdateGameUI();
     }
 
     void Update()
     {
-        if (Time.timeScale == 0f) return;
+        if (isPaused || Time.timeScale == 0f) 
+        {
+            if (agent != null && agent.hasPath) agent.ResetPath(); 
+            return; 
+        }
 
         float moveHorizontal = Input.GetAxis("Horizontal");
         float moveVertical = Input.GetAxis("Vertical");
@@ -50,26 +77,32 @@ public class PlayerMovement : MonoBehaviour
         {
             Vector3 targetPosition = transform.position + movementDirection;
             
-            if (agent != null)
+            if (agent != null && agent.isOnNavMesh && agent.isActiveAndEnabled)
             {
                 agent.SetDestination(targetPosition);
             }
         }
     }
 
+    // This public function is what the CoinCollector scripts will trigger!
+    public void OnCoinCollected()
+    {
+        score += 10;
+        coinsCollected++;
+        UpdateGameUI();
+
+        if (coinsCollected >= totalCoinsNeeded)
+        {
+            TriggerVictory();
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.CompareTag("Coin"))
+        // Handle Enemy crash loops
+        if (other.gameObject.CompareTag("Enemy"))
         {
-            Destroy(other.gameObject);
-            score += 10;
-            coinsCollected++;
-            UpdateGameUI();
-
-            if (coinsCollected >= totalCoinsNeeded)
-            {
-                TriggerVictory();
-            }
+            TriggerGameOver();
         }
     }
 
@@ -81,20 +114,17 @@ public class PlayerMovement : MonoBehaviour
 
     public void PauseGame()
     {
-        if (pausePanel != null)
-        {
-            pausePanel.SetActive(true); 
-            Time.timeScale = 0f;        
-        }
+        isPaused = true;
+        Time.timeScale = 0f; 
+        if (pauseMenuTitleText != null) pauseMenuTitleText.text = "PAUSED"; 
+        if (pausePanel != null) pausePanel.SetActive(true); 
     }
 
     public void ResumeGame()
     {
-        if (pausePanel != null)
-        {
-            pausePanel.SetActive(false); 
-            Time.timeScale = 1f;         
-        }
+        isPaused = false;
+        Time.timeScale = 1f; 
+        if (pausePanel != null) pausePanel.SetActive(false); 
     }
 
     public void LoadMainMenu()
@@ -103,8 +133,53 @@ public class PlayerMovement : MonoBehaviour
         SceneManager.LoadScene("MainMenu"); 
     }
 
+    void TriggerGameOver()
+    {
+        isPaused = true;
+        Time.timeScale = 0f; 
+        if (pauseMenuTitleText != null) pauseMenuTitleText.text = "GAME OVER";
+        if (pausePanel != null)
+        {
+            pausePanel.SetActive(true); 
+            Transform resumeBtn = pausePanel.transform.Find("ResumeButton");
+            if (resumeBtn != null) resumeBtn.gameObject.SetActive(false);
+        }
+    }
+
     void TriggerVictory()
     {
-        Debug.Log("🏆 VICTORY! All 40 coins collected! 🏆");
+        isPaused = true;
+        Time.timeScale = 0f; 
+
+        if (finalScoreText != null) finalScoreText.text = "Final Score: " + score;
+        if (finalCoinText != null) finalCoinText.text = "Coins Collected: " + coinsCollected + " / " + totalCoinsNeeded;
+
+        if (victoryPanel != null)
+        {
+            victoryPanel.SetActive(true);
+            Debug.Log("🎯 VICTORY PANEL ACTIVATED SUCCESSFULLY!");
+        }
+
+        StartCoroutine(WaitAndLoadNextLevel());
+    }
+
+    IEnumerator WaitAndLoadNextLevel()
+    {
+        yield return new WaitForSecondsRealtime(3f); 
+        Time.timeScale = 1f; 
+
+        if (SceneManager.GetActiveScene().name == "Level 2")
+        {
+            PlayerPrefs.SetInt("TotalScore", score);
+            PlayerPrefs.SetInt("TotalCoins", coinsCollected);
+            PlayerPrefs.Save(); 
+            SceneManager.LoadScene("GameEnd"); 
+        }
+        else
+        {
+            PlayerPrefs.SetInt("TotalScore", score);
+            PlayerPrefs.Save();
+            SceneManager.LoadScene("Level 2"); 
+        }
     }
 }
