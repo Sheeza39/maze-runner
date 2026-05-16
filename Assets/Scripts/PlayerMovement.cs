@@ -26,18 +26,16 @@ public class PlayerMovement : MonoBehaviour
     [Header("Scoring Tracker System")]
     private int score = 0;
     private int coinsCollected = 0;
-    public int totalCoinsNeeded = 3; // Changeable in the inspector layout
+    public int totalCoinsNeeded = 3; 
 
     private bool isPaused = false;
 
     void Start()
     {
-        // 1. Check current scene name to handle score memory states correctly
         string currentScene = SceneManager.GetActiveScene().name;
 
         if (currentScene == "Level 1")
         {
-            // Reset cache fully whenever starting a fresh playthrough
             PlayerPrefs.DeleteAll(); 
             score = 0;
             coinsCollected = 0;
@@ -45,17 +43,14 @@ public class PlayerMovement : MonoBehaviour
         }
         else if (currentScene == "Level 2")
         {
-            // Load cumulative score carried over from the end of Level 1
             score = PlayerPrefs.GetInt("TotalScore", 0);
-            coinsCollected = 0; // Reset specific coin count for this level map layout
+            coinsCollected = 0; 
             Debug.Log("📦 Level 2 Loaded! Carrying over score: " + score);
         }
 
-        // 2. Set up NavMeshAgent linkages safely
         if (agent == null) agent = GetComponent<NavMeshAgent>();
         if (agent != null) agent.speed = speed;
 
-        // 3. Keep the layout system clean and ensure time flows normally
         Time.timeScale = 1f; 
         isPaused = false;
         
@@ -67,7 +62,6 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        // Safety guard: Don't calculate paths if paused or if time is frozen
         if (isPaused || Time.timeScale == 0f) 
         {
             if (agent != null && agent.hasPath) agent.ResetPath(); 
@@ -83,7 +77,6 @@ public class PlayerMovement : MonoBehaviour
         {
             Vector3 targetPosition = transform.position + movementDirection;
             
-            // Safety guard fix for the NavMesh crash error:
             if (agent != null && agent.isOnNavMesh && agent.isActiveAndEnabled)
             {
                 agent.SetDestination(targetPosition);
@@ -91,23 +84,22 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    // This public function is what the CoinCollector scripts will trigger!
+    public void OnCoinCollected()
+    {
+        score += 10;
+        coinsCollected++;
+        UpdateGameUI();
+
+        if (coinsCollected >= totalCoinsNeeded)
+        {
+            TriggerVictory();
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
-        // Handle Coin picking up triggers
-        if (other.gameObject.CompareTag("Coin"))
-        {
-            Destroy(other.gameObject);
-            score += 10;
-            coinsCollected++;
-            UpdateGameUI();
-
-            if (coinsCollected >= totalCoinsNeeded)
-            {
-                TriggerVictory();
-            }
-        }
-
-        // Handle Enemy crash game over loops
+        // Handle Enemy crash loops
         if (other.gameObject.CompareTag("Enemy"))
         {
             TriggerGameOver();
@@ -157,48 +149,36 @@ public class PlayerMovement : MonoBehaviour
     void TriggerVictory()
     {
         isPaused = true;
-        Time.timeScale = 0f; // Freeze game actions instantly!
+        Time.timeScale = 0f; 
 
-        // 1. Push current calculated runtime stats to victory text components
         if (finalScoreText != null) finalScoreText.text = "Final Score: " + score;
         if (finalCoinText != null) finalCoinText.text = "Coins Collected: " + coinsCollected + " / " + totalCoinsNeeded;
 
-        // 2. Turn the Victory Panel layout fully ON
         if (victoryPanel != null)
         {
             victoryPanel.SetActive(true);
             Debug.Log("🎯 VICTORY PANEL ACTIVATED SUCCESSFULLY!");
         }
 
-        // 3. Fire real-time countdown timer to bridge scene swapping
         StartCoroutine(WaitAndLoadNextLevel());
     }
 
     IEnumerator WaitAndLoadNextLevel()
     {
-        // Wait 3 seconds using actual real-time wristwatch values
         yield return new WaitForSecondsRealtime(3f); 
-        
-        Time.timeScale = 1f; // Re-align core time speed flags
+        Time.timeScale = 1f; 
 
-        // Check if the current level finishing up is Level 2
         if (SceneManager.GetActiveScene().name == "Level 2")
         {
-            // Save final values to cache memory references
             PlayerPrefs.SetInt("TotalScore", score);
             PlayerPrefs.SetInt("TotalCoins", coinsCollected);
             PlayerPrefs.Save(); 
-
-            Debug.Log("🏁 Game Complete! Loading final GameEnd scene.");
             SceneManager.LoadScene("GameEnd"); 
         }
         else
         {
-            // Otherwise save standard step score markers and launch Level 2
             PlayerPrefs.SetInt("TotalScore", score);
             PlayerPrefs.Save();
-
-            Debug.Log("🚀 Level 1 Complete! Launching Level 2.");
             SceneManager.LoadScene("Level 2"); 
         }
     }
