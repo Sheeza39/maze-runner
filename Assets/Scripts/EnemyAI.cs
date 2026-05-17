@@ -5,12 +5,15 @@ public class EnemyAI : MonoBehaviour
 {
     private NavMeshAgent enemyAgent;
     private Transform playerTransform;
-
+    private Animator anim;
+private NavMeshAgent agent;
     // Adjust this number to change how close the player must get to trigger the chase
     public float detectionRadius = 8f; 
 
     void Start()
     {
+        anim = GetComponent<Animator>();
+    agent = GetComponent<NavMeshAgent>();
         enemyAgent = GetComponent<NavMeshAgent>();
         
         GameObject player = GameObject.Find("Ghost");
@@ -38,6 +41,8 @@ public class EnemyAI : MonoBehaviour
                 enemyAgent.ResetPath(); 
             }
         }
+        bool isMoving = agent.velocity.magnitude > 0.1f;
+    anim.SetBool("isMoving", isMoving);
     }
 
     // DEFEAT CONDITION

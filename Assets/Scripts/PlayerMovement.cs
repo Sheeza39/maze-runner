@@ -31,8 +31,13 @@ public class PlayerMovement : MonoBehaviour
     private bool isPaused = false;
     private Transform camTransform; // Added to store camera reference
 
+    private Animator anim;
+private float idleTimer = 0f;
+private float idleInterval = 3f;
+
     void Start()
 {
+    anim = GetComponent<Animator>();
     // 1. Setup Camera Reference
     if (Camera.main != null) camTransform = Camera.main.transform;
 
@@ -71,6 +76,32 @@ public class PlayerMovement : MonoBehaviour
 
 void Update()
 {
+    if (isPaused) return;
+
+    bool moving = agent.velocity.magnitude > 0.1f;
+    anim.SetBool("isMoving", moving);
+
+    if (moving)
+{
+    idleTimer = 0f;
+    anim.SetBool("isMoving", true);
+}
+else
+{
+    anim.SetBool("isMoving", false);
+    
+    // Only count up if we are NOT currently playing the animation
+    // We check if the Animator is in the 'Stationary' state
+    if (anim.GetCurrentAnimatorStateInfo(0).IsName("Stationary"))
+    {
+        idleTimer += Time.deltaTime;
+        if (idleTimer >= 3.0f) 
+        {
+            anim.SetTrigger("PlayIdle");
+            idleTimer = 0f; 
+        }
+    }
+}
     if (isPaused || Time.timeScale == 0f) 
     {
         if (agent != null && agent.hasPath) agent.ResetPath();
