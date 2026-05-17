@@ -3,9 +3,12 @@ using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using TMPro;
-
+using Terresquall;
 public class PlayerMovement : MonoBehaviour
 {
+    // Drag the Joystick from your Hierarchy into this slot in the Inspector
+    // Change this line in your variables
+    public VirtualJoystick variableJoystick;
     [Header("Movement Settings")]
     public NavMeshAgent agent;
     public float speed = 4f;
@@ -107,8 +110,12 @@ public class PlayerMovement : MonoBehaviour
         }
 
         // 3. Get Input
-        float moveHorizontal = Input.GetAxis("Horizontal");
-        float moveVertical = Input.GetAxis("Vertical");
+        // REPLACE your old moveHorizontal/moveVertical lines with these:
+        // Get Input from the Virtual Joystick
+        // Change these two lines in your Update function
+        // Use the Terresquall static method as per their instructions
+        float moveHorizontal = VirtualJoystick.GetAxis("Horizontal");
+        float moveVertical = VirtualJoystick.GetAxis("Vertical");
 
         // Prevent Backward Movement (as requested)
         if (moveVertical < 0) moveVertical = 0;
