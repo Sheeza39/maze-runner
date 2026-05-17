@@ -4,23 +4,24 @@ public class CoinCollector : MonoBehaviour
 {
     private void OnTriggerEnter(Collider other)
     {
-        // 1. Verify if the object touching the coin is your Ghost player
-        if (other.gameObject.CompareTag("Player") || other.gameObject.name == "Ghost")
+        // 1. ONLY proceed if the object hitting the coin is tagged "Player"
+        // This ignores CameraBounds, Walls, and everything else.
+        if (other.CompareTag("Player"))
         {
-            // 2. Fetch the script component directly from the Ghost object
-            PlayerMovement playerScript = other.gameObject.GetComponent<PlayerMovement>();
+            PlayerMovement playerScript = other.GetComponentInParent<PlayerMovement>();
 
             if (playerScript != null)
             {
-                // Send score and UI update markers to the master movement script
                 playerScript.OnCoinCollected(); 
-                
-                // 📢 Logs the exact unique clone name to the console!
-                Debug.Log($"⭐ SUCCESS: {gameObject.name} collected! +10 Points. ⭐");
-                
-                // 3. Make this coin instance disappear instantly
+                Debug.Log($"⭐ SUCCESS: {gameObject.name} collected! ⭐");
                 Destroy(gameObject); 
             }
+        }
+        else 
+        {
+            // This is just for your own debugging; you can remove it later
+            // It helps confirm that non-player objects are being ignored.
+            Debug.Log($"Coin touched by {other.name}, but we are ignoring it because it's not the Player.");
         }
     }
 }
