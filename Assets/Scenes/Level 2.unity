@@ -4564,6 +4564,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -4848655214913083744, guid: 5761d0323bba4e845807f579a933e309, type: 3}
+      propertyPath: m_IsKinematic
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 508311357731857209, guid: 5761d0323bba4e845807f579a933e309, type: 3}
       propertyPath: m_LocalPosition.x
       value: 6.16674
@@ -4574,7 +4578,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 508311357731857209, guid: 5761d0323bba4e845807f579a933e309, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 5.19
+      value: -4.99
       objectReference: {fileID: 0}
     - target: {fileID: 508311357731857209, guid: 5761d0323bba4e845807f579a933e309, type: 3}
       propertyPath: m_LocalRotation.w
@@ -4614,7 +4618,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5576987504430869060, guid: 5761d0323bba4e845807f579a933e309, type: 3}
       propertyPath: detectionRadius
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
