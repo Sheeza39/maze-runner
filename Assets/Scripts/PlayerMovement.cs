@@ -33,33 +33,57 @@ public class PlayerMovement : MonoBehaviour
 
     void Start()
 {
-    if (Camera.main != null) 
+    // 1. Setup Camera Reference
+    if (Camera.main != null) camTransform = Camera.main.transform;
+
+    // 2. Handle Level Scoring Logic
+    string currentScene = SceneManager.GetActiveScene().name;
+    if (currentScene == "Level 1")
     {
-        camTransform = Camera.main.transform;
+        PlayerPrefs.DeleteAll(); 
+        score = 0;
+        coinsCollected = 0;
     }
-    else
+    else if (currentScene == "Level 2")
     {
-        Debug.LogError("Ghost cannot find the Main Camera! Make sure your camera is tagged as 'MainCamera'.");
+        score = PlayerPrefs.GetInt("TotalScore", 0);
+        coinsCollected = 0; 
     }
 
+    // 3. Reset Agent to standard (Stair-friendly) mode
     if (agent == null) agent = GetComponent<NavMeshAgent>();
+    if (agent != null)
+    {
+        agent.speed = speed;
+        agent.updatePosition = true; // MUST be true for stairs!
+        agent.updateRotation = true;
+        agent.acceleration = 12f; // Back to a stable value
+    }
+
+    Time.timeScale = 1f; 
+    isPaused = false;
     
-    // RESET THESE TO DEFAULTS
-    agent.updatePosition = true; 
-    agent.updateRotation = true;
-    agent.acceleration = 12f;
-    agent.speed = speed;
+    if (pausePanel != null) pausePanel.SetActive(false);
+    if (victoryPanel != null) victoryPanel.SetActive(false); 
+    
+    UpdateGameUI();
 }
 
 void Update()
 {
-    if (isPaused || Time.timeScale == 0f) return;
+    if (isPaused || Time.timeScale == 0f) 
+    {
+        if (agent != null && agent.hasPath) agent.ResetPath();
+        return; 
+    }
 
     float moveHorizontal = Input.GetAxis("Horizontal");
     float moveVertical = Input.GetAxis("Vertical");
 
-    if (moveVertical < 0) moveVertical = 0; // Keep your backward restriction
+    // Prevent Backward Movement
+    if (moveVertical < 0) moveVertical = 0; 
 
+    // Calculate direction relative to camera
     Vector3 forward = camTransform.forward;
     Vector3 right = camTransform.right;
     forward.y = 0f;
@@ -71,14 +95,19 @@ void Update()
 
     if (movementDirection.magnitude >= 0.1f)
     {
-        // Use a fixed distance for the destination to keep it stable
-        Vector3 targetPos = transform.position + movementDirection * 2f;
-        agent.SetDestination(targetPos);
+        Vector3 potentialTarget = transform.position + movementDirection * 1.2f;
+        NavMeshHit hit;
+
+        // This checks the NavMesh for the nearest valid point (like a step)
+        if (NavMesh.SamplePosition(potentialTarget, out hit, 1.0f, NavMesh.AllAreas))
+        {
+            agent.SetDestination(hit.position);
+        }
     }
     else
     {
-        // If no input, tell the agent to stop immediately
-        agent.ResetPath();
+        // Stop movement if no keys are pressed
+        if (agent != null && agent.isOnNavMesh) agent.ResetPath();
     }
 }
 

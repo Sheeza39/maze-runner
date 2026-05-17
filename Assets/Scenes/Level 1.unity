@@ -9066,6 +9066,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1916148845}
     - target: {fileID: 4555907736405150118, guid: ed3e85e11192146b9a8346672fd5354d, type: 3}
+      propertyPath: m_BaseOffset
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4555907736405150118, guid: ed3e85e11192146b9a8346672fd5354d, type: 3}
       propertyPath: m_AutoBraking
       value: 0
       objectReference: {fileID: 0}
