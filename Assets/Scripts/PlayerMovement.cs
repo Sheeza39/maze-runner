@@ -29,62 +29,59 @@ public class PlayerMovement : MonoBehaviour
     public int totalCoinsNeeded = 3; 
 
     private bool isPaused = false;
+    private Transform camTransform; // Added to store camera reference
 
     void Start()
+{
+    if (Camera.main != null) 
     {
-        string currentScene = SceneManager.GetActiveScene().name;
-
-        if (currentScene == "Level 1")
-        {
-            PlayerPrefs.DeleteAll(); 
-            score = 0;
-            coinsCollected = 0;
-            Debug.Log("🧹 Fresh game started in Level 1! Scores reset to 0.");
-        }
-        else if (currentScene == "Level 2")
-        {
-            score = PlayerPrefs.GetInt("TotalScore", 0);
-            coinsCollected = 0; 
-            Debug.Log("📦 Level 2 Loaded! Carrying over score: " + score);
-        }
-
-        if (agent == null) agent = GetComponent<NavMeshAgent>();
-        if (agent != null) agent.speed = speed;
-
-        Time.timeScale = 1f; 
-        isPaused = false;
-        
-        if (pausePanel != null) pausePanel.SetActive(false);
-        if (victoryPanel != null) victoryPanel.SetActive(false); 
-        
-        UpdateGameUI();
+        camTransform = Camera.main.transform;
+    }
+    else
+    {
+        Debug.LogError("Ghost cannot find the Main Camera! Make sure your camera is tagged as 'MainCamera'.");
     }
 
-    void Update()
+    if (agent == null) agent = GetComponent<NavMeshAgent>();
+    
+    // RESET THESE TO DEFAULTS
+    agent.updatePosition = true; 
+    agent.updateRotation = true;
+    agent.acceleration = 12f;
+    agent.speed = speed;
+}
+
+void Update()
+{
+    if (isPaused || Time.timeScale == 0f) return;
+
+    float moveHorizontal = Input.GetAxis("Horizontal");
+    float moveVertical = Input.GetAxis("Vertical");
+
+    if (moveVertical < 0) moveVertical = 0; // Keep your backward restriction
+
+    Vector3 forward = camTransform.forward;
+    Vector3 right = camTransform.right;
+    forward.y = 0f;
+    right.y = 0f;
+    forward.Normalize();
+    right.Normalize();
+
+    Vector3 movementDirection = (forward * moveVertical + right * moveHorizontal).normalized;
+
+    if (movementDirection.magnitude >= 0.1f)
     {
-        if (isPaused || Time.timeScale == 0f) 
-        {
-            if (agent != null && agent.hasPath) agent.ResetPath(); 
-            return; 
-        }
-
-        float moveHorizontal = Input.GetAxis("Horizontal");
-        float moveVertical = Input.GetAxis("Vertical");
-
-        Vector3 movementDirection = new Vector3(moveHorizontal, 0f, moveVertical).normalized;
-
-        if (movementDirection.magnitude >= 0.1f)
-        {
-            Vector3 targetPosition = transform.position + movementDirection;
-            
-            if (agent != null && agent.isOnNavMesh && agent.isActiveAndEnabled)
-            {
-                agent.SetDestination(targetPosition);
-            }
-        }
+        // Use a fixed distance for the destination to keep it stable
+        Vector3 targetPos = transform.position + movementDirection * 2f;
+        agent.SetDestination(targetPos);
     }
+    else
+    {
+        // If no input, tell the agent to stop immediately
+        agent.ResetPath();
+    }
+}
 
-    // This public function is what the CoinCollector scripts will trigger!
     public void OnCoinCollected()
     {
         score += 10;
@@ -99,7 +96,6 @@ public class PlayerMovement : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // Handle Enemy crash loops
         if (other.gameObject.CompareTag("Enemy"))
         {
             TriggerGameOver();
