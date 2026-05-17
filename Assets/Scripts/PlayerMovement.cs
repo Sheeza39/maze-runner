@@ -8,7 +8,7 @@ public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement Settings")]
     public NavMeshAgent agent;
-    public float speed = 6f;
+    public float speed = 4f;
 
     [Header("Main Gameplay UI")]
     public TMP_Text scoreText; 
@@ -76,45 +76,44 @@ private float idleInterval = 3f;
 
 void Update()
 {
-    if (isPaused) return;
+    // 1. Pause Check
+    if (isPaused || Time.timeScale == 0f) 
+    {
+        if (agent != null && agent.isOnNavMesh) agent.ResetPath();
+        return; 
+    }
 
+    // 2. Animation Logic (Movement Detection)
+    // We use agent.velocity to see if the ghost is actually sliding
     bool moving = agent.velocity.magnitude > 0.1f;
     anim.SetBool("isMoving", moving);
 
     if (moving)
-{
-    idleTimer = 0f;
-    anim.SetBool("isMoving", true);
-}
-else
-{
-    anim.SetBool("isMoving", false);
-    
-    // Only count up if we are NOT currently playing the animation
-    // We check if the Animator is in the 'Stationary' state
-    if (anim.GetCurrentAnimatorStateInfo(0).IsName("Stationary"))
     {
-        idleTimer += Time.deltaTime;
-        if (idleTimer >= 3.0f) 
+        idleTimer = 0f;
+    }
+    else
+    {
+        // Only count up for the idle breath if we are standing in the 'Stationary' state
+        if (anim.GetCurrentAnimatorStateInfo(0).IsName("Stationary"))
         {
-            anim.SetTrigger("PlayIdle");
-            idleTimer = 0f; 
+            idleTimer += Time.deltaTime;
+            if (idleTimer >= 3.0f) 
+            {
+                anim.SetTrigger("PlayIdle");
+                idleTimer = 0f; 
+            }
         }
     }
-}
-    if (isPaused || Time.timeScale == 0f) 
-    {
-        if (agent != null && agent.hasPath) agent.ResetPath();
-        return; 
-    }
 
+    // 3. Get Input
     float moveHorizontal = Input.GetAxis("Horizontal");
     float moveVertical = Input.GetAxis("Vertical");
 
-    // Prevent Backward Movement
+    // Prevent Backward Movement (as requested)
     if (moveVertical < 0) moveVertical = 0; 
 
-    // Calculate direction relative to camera
+    // 4. Calculate Direction relative to Camera
     Vector3 forward = camTransform.forward;
     Vector3 right = camTransform.right;
     forward.y = 0f;
@@ -124,21 +123,30 @@ else
 
     Vector3 movementDirection = (forward * moveVertical + right * moveHorizontal).normalized;
 
+    // 5. Execution (The Smooth Glide Fix)
+    // 5. Execution (The Smooth Glide Fix)
     if (movementDirection.magnitude >= 0.1f)
     {
-        Vector3 potentialTarget = transform.position + movementDirection * 1.2f;
-        NavMeshHit hit;
+        Vector3 desiredMove = movementDirection * speed * Time.deltaTime;
+        agent.Move(desiredMove);
 
-        // This checks the NavMesh for the nearest valid point (like a step)
-        if (NavMesh.SamplePosition(potentialTarget, out hit, 1.0f, NavMesh.AllAreas))
-        {
-            agent.SetDestination(hit.position);
-        }
+        // --- SMOOTH ROTATION FIX ---
+        // 10f is the rotation speed. 
+        // Lower this number (e.g., 5f) to make turns even slower/wider.
+        // Higher this number (e.g., 20f) to make turns sharper.
+        float rotationSpeed = 3f; 
+        
+        Quaternion targetRotation = Quaternion.LookRotation(movementDirection);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
     }
     else
     {
-        // Stop movement if no keys are pressed
-        if (agent != null && agent.isOnNavMesh) agent.ResetPath();
+        // If no keys are pressed, clear the velocity to stop sliding instantly
+        if (agent.isOnNavMesh)
+        {
+            agent.velocity = Vector3.zero;
+            agent.ResetPath();
+        }
     }
 }
 
