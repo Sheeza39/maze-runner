@@ -8,42 +8,37 @@ public class EnemyAI : MonoBehaviour
     private Animator anim;
 private NavMeshAgent agent;
     // Adjust this number to change how close the player must get to trigger the chase
-    public float detectionRadius = 8f; 
+    public float detectionRadius = 10f; 
 
     void Start()
+{
+    anim = GetComponent<Animator>();
+    enemyAgent = GetComponent<NavMeshAgent>();
+    
+    // SPEED TWEAK: Set the enemy speed to be slower than the player
+    // If your player speed is 5, set this to 3.5 or 4.
+    enemyAgent.speed = 2f; 
+
+    GameObject player = GameObject.Find("Ghost");
+    if (player != null)
     {
-        anim = GetComponent<Animator>();
-    agent = GetComponent<NavMeshAgent>();
-        enemyAgent = GetComponent<NavMeshAgent>();
-        
-        GameObject player = GameObject.Find("Ghost");
-        if (player != null)
-        {
-            playerTransform = player.transform;
-        }
+        playerTransform = player.transform;
+    }
+}
+
+void Update()
+{
+    if (playerTransform != null && enemyAgent != null)
+    {
+        // REMOVED: The distance check. 
+        // Now the enemy constantly updates its path to the Ghost's position.
+        enemyAgent.SetDestination(playerTransform.position);
     }
 
-    void Update()
-    {
-        if (playerTransform != null && enemyAgent != null)
-        {
-            // Calculate the exact distance between the Enemy and the Ghost
-            float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
-
-            // CHASE CONDITION: Only move if the player is inside the detection radius
-            if (distanceToPlayer <= detectionRadius)
-            {
-                enemyAgent.SetDestination(playerTransform.position);
-            }
-            else
-            {
-                // If the player escapes outside the radius, the enemy stops chasing
-                enemyAgent.ResetPath(); 
-            }
-        }
-        bool isMoving = agent.velocity.magnitude > 0.1f;
+    // Animation logic remains the same
+    bool isMoving = enemyAgent.velocity.magnitude > 0.1f;
     anim.SetBool("isMoving", isMoving);
-    }
+}
 
     // DEFEAT CONDITION
     private void OnCollisionEnter(Collision collision)

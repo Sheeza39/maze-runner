@@ -3696,6 +3696,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 863866526}
     - target: {fileID: 5558984806922749644, guid: fb342eddc93b29149935028f731fcde7, type: 3}
+      propertyPath: totalCoinsNeeded
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5558984806922749644, guid: fb342eddc93b29149935028f731fcde7, type: 3}
       propertyPath: pauseMenuTitleText
       value: 
       objectReference: {fileID: 0}
@@ -3798,7 +3802,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3468465180569093503, guid: 8f906d6c084299e48b3bff4ff8d4eaf2, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 100
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 3960598621530408210, guid: 8f906d6c084299e48b3bff4ff8d4eaf2, type: 3}
       propertyPath: m_Pivot.x

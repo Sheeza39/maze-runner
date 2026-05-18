@@ -4195,6 +4195,10 @@ PrefabInstance:
       propertyPath: finalScoreText
       value: 
       objectReference: {fileID: 6288193708831680399}
+    - target: {fileID: 5558984806922749644, guid: fb342eddc93b29149935028f731fcde7, type: 3}
+      propertyPath: totalCoinsNeeded
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 5845476457214231864, guid: fb342eddc93b29149935028f731fcde7, type: 3}
       propertyPath: m_Name
       value: Ghost
@@ -4311,6 +4315,14 @@ PrefabInstance:
     - target: {fileID: 884450245798738307, guid: 5761d0323bba4e845807f579a933e309, type: 3}
       propertyPath: m_Name
       value: Mousey Character
+      objectReference: {fileID: 0}
+    - target: {fileID: 4513568708940437973, guid: 5761d0323bba4e845807f579a933e309, type: 3}
+      propertyPath: m_Speed
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5576987504430869060, guid: 5761d0323bba4e845807f579a933e309, type: 3}
+      propertyPath: detectionRadius
+      value: 100
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4446,15 +4458,15 @@ PrefabInstance:
       objectReference: {fileID: 3370552361352693471}
     - target: {fileID: 3468465180569093503, guid: 8f906d6c084299e48b3bff4ff8d4eaf2, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3468465180569093503, guid: 8f906d6c084299e48b3bff4ff8d4eaf2, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3468465180569093503, guid: 8f906d6c084299e48b3bff4ff8d4eaf2, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 100
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 3960598621530408210, guid: 8f906d6c084299e48b3bff4ff8d4eaf2, type: 3}
       propertyPath: m_Pivot.x

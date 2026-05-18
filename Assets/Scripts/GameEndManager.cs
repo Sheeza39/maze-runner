@@ -17,9 +17,20 @@ public class GameEndManager : MonoBehaviour
         int finalScore = PlayerPrefs.GetInt("TotalScore", 0);
         int finalCoins = PlayerPrefs.GetInt("TotalCoins", 0);
 
-        // 3. Print them onto the screen
-        if (totalScoreText != null) totalScoreText.text = "Final Score: " + finalScore;
-        if (totalCoinText != null) totalCoinText.text = "Total Coins: " + finalCoins;
+        // 3. Print them onto the screen with enhanced formatting
+        if (totalScoreText != null) 
+        {
+            totalScoreText.text = "<b> FINAL SCORE</b>" +
+                                  "<size=80%><color=#FFD700>" + finalScore + "</color></size>";
+        }
+        
+        if (totalCoinText != null) 
+        {
+            totalCoinText.text = "<b>COINS COLLECTED</b>" +
+                                 "<size=80%>" + finalCoins + "</size>";
+        }
+
+        Debug.Log("📋 GAME END STATS - Score: " + finalScore + ", Coins: " + finalCoins);
     }
 
     // Call this function when the Main Menu button is clicked!
@@ -27,6 +38,7 @@ public class GameEndManager : MonoBehaviour
     {
         // Clear out the saved memory data so the next playthrough starts fresh
         PlayerPrefs.DeleteAll();
+        Time.timeScale = 1f;
         SceneManager.LoadScene("MainMenu");
     }
 }

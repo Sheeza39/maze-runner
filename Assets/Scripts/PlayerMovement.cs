@@ -11,7 +11,7 @@ public class PlayerMovement : MonoBehaviour
     public VirtualJoystick variableJoystick;
     [Header("Movement Settings")]
     public NavMeshAgent agent;
-    public float speed = 4f;
+    public float speed = 3f;
 
     [Header("Main Gameplay UI")]
     public TMP_Text scoreText;
@@ -148,7 +148,7 @@ if (Mathf.Abs(moveHorizontal) > 0.1f || Mathf.Abs(moveVertical) > 0.1f)
             // 10f is the rotation speed. 
             // Lower this number (e.g., 5f) to make turns even slower/wider.
             // Higher this number (e.g., 20f) to make turns sharper.
-            float rotationSpeed = 3f;
+            float rotationSpeed = 1f;
 
             Quaternion targetRotation = Quaternion.LookRotation(movementDirection);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
@@ -187,16 +187,16 @@ if (Mathf.Abs(moveHorizontal) > 0.1f || Mathf.Abs(moveVertical) > 0.1f)
         }
     }
 
-    // Add this as a backup in case the physics setup 
-    // prefers a standard collision over a trigger
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Enemy"))
-        {
-            Debug.Log("💀 GHOST COLLIDED! 💀");
-            TriggerGameOver();
-        }
-    }
+    // // Add this as a backup in case the physics setup 
+    // // prefers a standard collision over a trigger
+    // private void OnCollisionEnter(Collision collision)
+    // {
+    //     if (collision.gameObject.CompareTag("Enemy"))
+    //     {
+    //         Debug.Log("💀 GHOST COLLIDED! 💀");
+    //         TriggerGameOver();
+    //     }
+    // }
 
     void UpdateGameUI()
     {
@@ -236,6 +236,23 @@ if (Mathf.Abs(moveHorizontal) > 0.1f || Mathf.Abs(moveVertical) > 0.1f)
             Transform resumeBtn = pausePanel.transform.Find("ResumeButton");
             if (resumeBtn != null) resumeBtn.gameObject.SetActive(false);
         }
+
+        // Save current stats and load GameEnd scene
+        StartCoroutine(WaitAndLoadGameEnd());
+    }
+
+    IEnumerator WaitAndLoadGameEnd()
+    {
+        yield return new WaitForSecondsRealtime(2f);
+        Time.timeScale = 1f;
+
+        // Save the current level stats
+        PlayerPrefs.SetInt("TotalScore", score);
+        PlayerPrefs.SetInt("TotalCoins", coinsCollected);
+        PlayerPrefs.Save();
+
+        Debug.Log("💀 LOADING GAME END SCENE - Score: " + score + ", Coins: " + coinsCollected);
+        SceneManager.LoadScene("GameEnd");
     }
 
     void TriggerVictory()
@@ -243,8 +260,22 @@ if (Mathf.Abs(moveHorizontal) > 0.1f || Mathf.Abs(moveVertical) > 0.1f)
         isPaused = true;
         Time.timeScale = 0f;
 
-        if (finalScoreText != null) finalScoreText.text = "Final Score: " + score;
-        if (finalCoinText != null) finalCoinText.text = "Coins Collected: " + coinsCollected + " / " + totalCoinsNeeded;
+        // Enhanced UI text with better formatting and spacing
+        if (finalScoreText != null)
+        {
+            finalScoreText.text = "<b> LEVEL COMPLETE! </b>\n" +
+                                  "<size=80%>Final Score</size>" +
+                                  "<size=120%><color=#FFD700>" + score + " Points</color></size>";
+        }
+
+        if (finalCoinText != null)
+        {
+            finalCoinText.text = "<b> COINS COLLECTED </b>\n" +
+                                 "<size=80%>" + coinsCollected + " / " + totalCoinsNeeded + " Coins</size>" +
+                                 (coinsCollected >= totalCoinsNeeded ? 
+                                    "<size=90%><color=#00FF00>✓ PERFECT!</color></size>" : 
+                                    "<size=90%><color=#FFA500>Missing " + (totalCoinsNeeded - coinsCollected) + "</color></size>");
+        }
 
         if (victoryPanel != null)
         {
