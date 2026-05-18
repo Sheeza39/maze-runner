@@ -109,14 +109,19 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // 3. Get Input
-        // REPLACE your old moveHorizontal/moveVertical lines with these:
-        // Get Input from the Virtual Joystick
-        // Change these two lines in your Update function
-        // Use the Terresquall static method as per their instructions
-        float moveHorizontal = VirtualJoystick.GetAxis("Horizontal");
-        float moveVertical = VirtualJoystick.GetAxis("Vertical");
+        // Inside your Update function where you get joystick input:
+float moveHorizontal = VirtualJoystick.GetAxis("Horizontal") * 0.7f; // Reduces sensitivity by 30%
+float moveVertical = VirtualJoystick.GetAxis("Vertical") * 0.7f;
 
+if (Mathf.Abs(moveHorizontal) > 0.1f || Mathf.Abs(moveVertical) > 0.1f)
+    {
+        anim.SetBool("isRunning", true);
+    }
+    else
+    {
+        anim.SetBool("isRunning", false);
+    }
+    
         // Prevent Backward Movement (as requested)
         if (moveVertical < 0) moveVertical = 0;
 

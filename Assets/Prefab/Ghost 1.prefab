@@ -172,8 +172,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35416dae99654487cad8333d9bb3cf68, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
+  variableJoystick: {fileID: 0}
   agent: {fileID: 2385327499045034673}
-  speed: 6
+  speed: 3
   scoreText: {fileID: 0}
   coinText: {fileID: 0}
   pausePanel: {fileID: 0}
@@ -213,7 +214,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.2
-  m_Speed: 8
+  m_Speed: 3
   m_Acceleration: 50
   avoidancePriority: 0
   m_AngularSpeed: 360
