@@ -23,6 +23,7 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Victory Screen Elements")]
     public GameObject victoryPanel;
+    private AudioSource audioSource;
     public TMP_Text finalScoreText;
     public TMP_Text finalCoinText;
 
@@ -40,6 +41,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Start()
     {
+        audioSource = GetComponent<AudioSource>();
         anim = GetComponent<Animator>();
         // 1. Setup Camera Reference
         if (Camera.main != null) camTransform = Camera.main.transform;
@@ -121,7 +123,7 @@ if (Mathf.Abs(moveHorizontal) > 0.1f || Mathf.Abs(moveVertical) > 0.1f)
     {
         anim.SetBool("isRunning", false);
     }
-    
+
         // Prevent Backward Movement (as requested)
         if (moveVertical < 0) moveVertical = 0;
 
@@ -166,6 +168,7 @@ if (Mathf.Abs(moveHorizontal) > 0.1f || Mathf.Abs(moveVertical) > 0.1f)
     {
         score += 10;
         coinsCollected++;
+        audioSource.Play();
         UpdateGameUI();
 
         if (coinsCollected >= totalCoinsNeeded)
